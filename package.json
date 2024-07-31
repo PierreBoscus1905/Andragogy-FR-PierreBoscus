@@ -1,6 +1,7 @@
 {
   "scripts":{
-    "prod": "node server.js"
+    "prod": "node server.js",
+    "test": "jest"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

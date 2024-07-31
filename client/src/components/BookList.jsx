@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import './../styles/booklist.css'
-const base = import.meta.env.VITE_BASE_API 
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './../styles/booklist.css';
+const base = import.meta.env.VITE_BASE_API;
 
 const BookList = () => {
-    const navigate = useNavigate()
-    const [books, setBooks] = useState([])
-    const [userRole, setUserRole] = useState('')
+    const navigate = useNavigate();
+    const [books, setBooks] = useState([]);
+    const [userRole, setUserRole] = useState('');
 
     useEffect(() => {
         fetch(base+'api/books', {
@@ -25,6 +25,30 @@ const BookList = () => {
             .then(data => setUserRole(data.user.role || 'Guest'))
             .catch(error => setUserRole('Guest'))
     }, [])
+
+    const handleBorrowBook = async (bookId) => {
+        try {
+            const response = await fetch(`${base}api/books/borrow`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bookId }),
+                credentials: 'include'
+            });
+
+            if (response.status === 200) {
+                setBooks(books.map(book =>
+                    book.id === bookId ? { ...book, statut: 'emprunté' } : book
+                ));
+            } else {
+                const data = await response.json();
+                console.error('Erreur:', data.message || 'Une erreur est survenue.');
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+        }
+    };
 
     const handleAddBook = () => {
         navigate('/add_book')
@@ -57,7 +81,12 @@ const BookList = () => {
                                 <td>{book.auteur}</td>
                                 <td>{book.date_publication}</td>
                                 <td>{book.statut}</td>
-                                <td><a href={`/book/${book.id}`}>Voir les détails</a></td>
+                                <td><a href={`${base}book/${book.id}`}>Voir les détails</a></td>
+                                <td>
+                                    {book.statut === 'disponible' && (
+                                        <button onClick={() => handleBorrowBook(book.id)}>emprunter</button>
+                                    )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
